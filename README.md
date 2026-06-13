@@ -134,6 +134,65 @@ TO_DATE('2025-02-02','YYYY-MM-DD'),
 
 SELECT * FROM penjualan
 
+\\Produk dengan harga di atas Rp150000
 SELECT * FROM produk WHERE harga > 150000;
 
+\\Urutan produk dari harga tertinggi\\
 SELECT * FROM produk ORDER BY harga DESC;
+
+\\Total jumlah produk terjual\\
+SELECT SUM(jumlah) FROM penjualan;
+
+\\Total transaksi tiap customer\\
+SELECT id_customer, SUM(jumlah) FROM penjualan GROUP BY id_customer;
+
+\\Produk paling laku\\
+SELECT id_produk, SUM(jumlah) total_terjual FROM penjualan GROUP BY id_produk ORDER BY total_terjual DESC;
+
+\\Nama customer dan produk yg dibeli
+SELECT c.nama_customer, p.nama_produk, j.jumlah
+FROM penjualan j
+JOIN customer c
+ON j.id_customer = c.id_customer
+JOIN produk p
+ON j.id_produk = p.id_produk;
+
+\\Total pendapatan per produk
+SELECT p.nama_produk, SUM(j.jumlah * p.harga) AS revenue
+FROM penjualan j
+JOIN produk p
+ON j.id_produk = p.id_produk
+GROUP BY p.nama_produk
+ORDER BY revenue DESC;
+
+\\Revenue per kategori\\
+SELECT k.nama_kategori, SUM(j.jumlah * p.harga) AS revenue
+FROM penjualan j
+JOIN produk p
+ON j.id_produk = p.id_produk
+JOIN kategori k
+ON p.id_kategori = k.id_kategori
+GROUP BY k.nama_kategori
+ORDER BY revenue DESC;
+
+\\Top customer\\
+SELECT c.nama_customer, SUM(j.jumlah * p.harga) total_belanja
+FROM penjualan j
+JOIN customer c
+ON j.id_customer = c.id_customer
+JOIN produk p
+ON j.id_produk = p.id_produk
+GROUP BY c.nama_customer
+ORDER BY total_belanja DESC;
+
+\\Top 3 produk terlaris\\
+SELECT * FROM (
+    SELECT p.nama_produk, SUM(j.jumlah) total_terjual, ROW_NUMBER() OVER(
+        ORDER  BY SUM(j.jumlah) DESC
+    ) ranking
+    FROM penjualan j
+    JOIN produk p
+    ON j.id_produk = p.id_produk
+    GROUP BY p.nama_produk
+)
+WHERE ranking <= 3;
